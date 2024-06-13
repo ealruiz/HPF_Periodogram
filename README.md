@@ -1,4 +1,10 @@
-Main scripts:
+# New periodogram implementation
+
+This project includes the scripts needed to compute the periodogram of a signal using a new implementation proposed by Ezequiel Albentosa Ruiz and Nicola Marchili. Together with the main scripts, a pipeline is given for testing the performance of this new implementation compared with the classic periodogram proposed by Jeffrey D. Scargle (1982).
+
+The contents of the repository are explained in the following sections:
+
+## Main scripts:
 - detrendedPeriodogram.cpp: C++ module to compute the new implementation of the periodogram. This script has to be imported in python. This script requires the following arguments from python:
  - Time, LCurve, LCurve_err: basic data of the signal: time series, and signal amplitudes and measurement errors.
  - PFreq, Periodogram: frequencies of the signal in Fourier domain, at which the periodogram will be evaluated, and array, with the same lenght as PFreq, to be filled with the periodogram values.
@@ -7,7 +13,7 @@ Main scripts:
  - save_detrend_signal: default: 0; set to 1 to save the detrended signals for each tbin (maybe useful for testing the working of the periodogram).
 - detrendedPeriodogram_setup.py: execute this python script to setup C++ module "detrendedPeriodogram.cpp".
 
-# Testing performance
+## Testing performance
 Grouped in the "TESTING" folder, you will find the following scripts needed for testing the performance of the new periodogram implementation and compare with the classic periodogram:
 - "*.dat" files with the time series for different samplings. The amplitudes correspond to a sinusoidal signal, but are not used.
 - LCurveSimulator.cpp: C++ module to simulate signals. This script has to be imported in python. This script requires the following arguments from python:
