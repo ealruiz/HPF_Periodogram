@@ -16,21 +16,32 @@ The contents of the repository are explained in the following sections:
 ## User guide:
 To use the scripts and retrieve the periodogram, follow these steps:
 1. **Setup the C++ Module**. Execute the detrendedPeriodogram_setup.py script using the following command:
-           **python detrendedPeriodogram_setup.py build_ext --inplace**
+```sh
+python detrendedPeriodogram_setup.py build_ext --inplace
+``` 
 2. **Integrate the C++ Module in Your Python Script**:
-   2.1. Import the C++ module. For instance:
-           **import _detrendedPeriodogram as detrendPeriodogramcpp**
-   2.2. Call the C++ function:
-           **detrendPeriodogramcpp.detrendedPeriodogram(Time,LCurve,LCurve_err, PFreq,Periodogram, Ndata,Nfreqs, LogScale, save_detrend_signal)**
-        **Note:** The **Time**, **LCurve** and **LCurve_err** arrays for the C++ processing require a copy of the numpy arrays. For each of these arrays, use:
-           **data_array = np.require(np.copy(data_array),requirements=['C','A'])**
-        For the **PFreq** and **Periodogram** arrays, specify them as follows:
-           **freqs = np.array([2.*np.pi*n/TOT_TIME for n in np.arange(1,int(Ntimes+1)/2))])**
-           **PFreq = np.require(np.copy(freqs),requirements=['C','A'])**
-           **Periodogram = np.require(np.zeros(Nfreqs,dtype=np.float64),requirements=['C','A'])**
-           where **TOT_TIME** is the total duration of the signal, **Ntimes** is the number of times in the time series, and **Nfreqs** is the number of frequencies (i.e. 'Nfreqs = len(freqs)').
-   2.3. The C++ function will fill the **Periodogram** array with the values of the periodogram evaluated at the frequencies in **PFreq**
-   
+```sh
+# Import the C++ module. For instance:
+import _detrendedPeriodogram as detrendPeriodogramcpp
+
+# Call the C++ function:
+detrendPeriodogramcpp.detrendedPeriodogram(Time,LCurve,LCurve_err, PFreq,Periodogram, Ndata,Nfreqs, LogScale, save_detrend_signal)
+# Note: Time, LCurve and LCurve_err arrays for the C++ processing require a copy of the numpy arrays. For each of these arrays, use:
+data_array = np.require(np.copy(your_data),requirements=['C','A'])
+# Note: change data_array for Time, Lcurve and LCurve_err, and your_data with your times, lcurves and errors.
+# Note: if you do not want to include the errors in the computation, specify:
+#        LCurve_err = np.zeros(len(data))
+
+# For the **PFreq** and **Periodogram** arrays, specify them as follows:
+freqs = np.array([2.*np.pi*n/TOT_TIME for n in np.arange(1,int(Ntimes+1)/2))])
+PFreq = np.require(np.copy(freqs),requirements=['C','A'])
+Periodogram = np.require(np.zeros(Nfreqs,dtype=np.float64),requirements=['C','A'])
+# TOT_TIME: total duration of the signal.
+# Ntimes: number of times in the time series.
+# Nfreqs: number of frequencies (i.e. 'Nfreqs = len(freqs)').
+
+# The C++ function will fill the **Periodogram** array with the values of the periodogram evaluated at the frequencies in PFreq.
+``` 
 
 ## Testing performance
 Grouped in the "TESTING" folder, you will find the following scripts needed (additionally to the two main scripts) for testing the performance of the new periodogram implementation and compare with the classic periodogram:
