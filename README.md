@@ -1,4 +1,4 @@
-# New periodogram implementation
+# High-pass Filter Periodogram
 
 This project includes the scripts needed to compute the periodogram of a signal using a new implementation proposed by Ezequiel Albentosa Ruiz and Nicola Marchili. Together with the main scripts, a pipeline is given for testing the performance of this new implementation compared with the classic periodogram proposed by Jeffrey D. Scargle (1982).
 
