@@ -168,7 +168,7 @@ std::vector<double> detrend_signal(const std::vector<double>& times, const std::
 	std::vector<double> detrended_signal(Ndata,0);
 	//double signal_min = *std::min_element(signal.begin(), signal.end());
 	
-	// Binning the data
+	// Binning the data, unless the bin is equal to the duration of the experiment
 	std::vector<double> bin_times, bin_signal, bin_error;
 	if (DETREND_BIN > 0.0)
 	{
@@ -201,11 +201,7 @@ std::vector<double> detrend_signal(const std::vector<double>& times, const std::
 			{
 				if (i == Ndata)
 				{
-					flag = 1; // stop loop - all data binned
-					// last average of the data: adds one additional bin at the end
-					bin_times.push_back(times[Ndata - 1]);
-					bin_signal.push_back((temp_signal + signal[Ndata - 1]) / (nsamebin + 1));
-					bin_error.push_back((temp_error + error[Ndata - 1]) / (nsamebin + 1));
+					flag = 1; // stop loop - all data binned, except last bin
 					break;
 				};
 				if (times[i] - times[k] < DETREND_BIN) {
@@ -226,6 +222,26 @@ std::vector<double> detrend_signal(const std::vector<double>& times, const std::
 				};
 			};
 		};
+		
+		// The last two points are estimated independently as the average of the points in the interval (x[Ndata-1]-bin/2, x[Ndata-1]) 
+		temp_times = times[Ndata-1]; temp_signal = signal[Ndata-1]; temp_error = error[Ndata-1];
+		nsamebin = 1;
+		for (int i = Ndata - 2; i > 0; --i)
+		{
+			if (times[Ndata-1] - times[i] < DETREND_BIN / 2.0)
+			{
+				temp_times += times[i];
+				temp_signal += signal[i];
+				temp_error += error[i];
+				++nsamebin;
+			} else {
+				break;
+			};
+		};
+		bin_times.push_back(temp_times / nsamebin);
+		bin_signal.push_back(temp_signal / nsamebin);
+		bin_error.push_back(temp_error / nsamebin);
+	
 	} else {
 		bin_times = times;
 		bin_signal = signal;
