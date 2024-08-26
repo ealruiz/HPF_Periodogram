@@ -223,7 +223,7 @@ std::vector<double> detrend_signal(const std::vector<double>& times, const std::
 			};
 		};
 		
-		// The last two points are estimated independently as the average of the points in the interval (x[Ndata-1]-bin/2, x[Ndata-1]) 
+		// The last point is estimated independently as the average of the points in the interval (x[Ndata-1]-bin/2, x[Ndata-1]) 
 		temp_times = times[Ndata-1]; temp_signal = signal[Ndata-1]; temp_error = error[Ndata-1];
 		nsamebin = 1;
 		for (int i = Ndata - 2; i > 0; --i)
