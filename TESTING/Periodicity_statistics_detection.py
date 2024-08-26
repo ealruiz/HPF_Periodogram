@@ -39,12 +39,14 @@ ALL_PERIOD_LEN = [0.] + PERIOD_LEN
 NPERIOD = len(ALL_PERIOD_LEN)
 VERSIONS = ['original','detrended']
 
+P_false_alarm = 0.01 # False alarm probability for periodicity detections
+
 def GetPeriodicityDetections(fname='normalised_periodogram.dat',FreqPeriod=0.):
 	data = np.loadtxt(fname,skiprows=1)
 	freqs = np.array([ti for ti in data[:,0]])
 	Nfreqs = len(freqs)
 	norm_pgram = np.array([si for si in data[:,1]])
-	z0 = 2.*(4.6 + np.log(Nfreqs))
+	z0 = np.log(Nfreqs/P_false_alarm)
 	Ndetections, PeriodicityFound, Periodicity_MaxPeriodogram = 0, 0, 0
 	for indx,npgram in enumerate(norm_pgram):
 		if z0 < npgram:
