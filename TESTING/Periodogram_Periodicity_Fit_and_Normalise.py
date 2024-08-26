@@ -18,7 +18,13 @@ if True:
 				}
   plt.rcParams.update(params)
 
-SAMPLINGS = ['1_3C454_Medicina_X', '2_0716_fgamma_6cm', '3_0716_urumqi_200607', '4_0212_gbi', '5_0133_gbi', '6_0235_gbi', '7_even']
+#SAMPLINGS = ['1_3C454_Medicina_X']
+#SAMPLINGS = ['2_0716_fgamma_6cm']
+#SAMPLINGS = ['3_0716_urumqi_200607']
+#SAMPLINGS = ['4_0212_gbi']
+#SAMPLINGS = ['5_0133_gbi']
+#SAMPLINGS = ['6_0235_gbi']
+SAMPLINGS = ['7_even']
 DIVIDE_BETA = True # True to generate signals with fixed beta values for the Power Spectrum and divide the signals consequently; if False, will generate signals with an expanded sample of values of beta
 if DIVIDE_BETA:
 	NSIMULATIONS = 1111 ### number of simulated signals
@@ -30,8 +36,10 @@ else:
 
 NOISE_LEVEL = [3.]
 
-METHODS = ['Dynamic','BottomUp', 'Kernrbf'] # 'Binary', 'Kernlin',
+METHODS = ['Dynamic','BottomUp', 'Kernlin'] # 'Binary', 'Kernlin', 'Kernrbf'
 PLOT_FIT = False # True to plot "linear" fit of the Periodogram vs freq. in log-log scale
+PLOT_NORM_PERIODOGRAM = False # True to plot the normalised periodogram
+PLOT_PERIODIC_SIGNAL = False # True to plot the simulated signals with injected periodicity
 
 ### Parameters of the simulated periodic signal to be injected
 X0_FACT = [0.3,1.,3.] # the amplitude of the periodic signal will be X0_FACT times the standard deviation of the random simulated signal
@@ -84,7 +92,7 @@ def getBreakIndx(data,method,MinData=11,NBreaks=1,PlotBreaks=False):
 	del algo
 	return result
 
-def Periodogram1Slope_and_Normalise(freqs=[],Periodogram=[],DATname='Periodogram.dat', method = 'BottomUp', lowfreq_indx=1, PlotLinFit = False):
+def Periodogram1Slope_and_Normalise(freqs=[],Periodogram=[],DATname='Periodogram.dat', method = 'BottomUp', lowfreq_indx=1, PlotLinFit = False, plot_normP = False):
 	'''
 		Function to compute slope of the periodogram
 		Parameters:
@@ -118,17 +126,19 @@ def Periodogram1Slope_and_Normalise(freqs=[],Periodogram=[],DATname='Periodogram
 	### Compute, save and plot normalised periodogram
 	NormFreqs = 10**np.array(freqs[:split_index])
 	NormPeriodogram = np.array(10**Periodogram[:split_index]/(10**(linear_fit(freqs[:split_index], *params_linear))))
+	NormPeriodogram *= 1./np.mean(NormPeriodogram)
 	Outdata = np.column_stack((NormFreqs, NormPeriodogram))
 	np.savetxt(DATname[:-4]+'_normalised_%s.dat'%method, Outdata, delimiter='\t', header='#\t Freq (h^-1) \t Periodogram', comments='')
-	fig = pl.figure(figsize=(10,7))
-	sub1 = fig.add_subplot(111)
-	fig.subplots_adjust(wspace=0.01,hspace=0.01,right=0.98,left=0.125)
-	fig.suptitle(DATname[:-4]+' normalised %s'%method,fontsize=18)
-	sub1.loglog(NormFreqs,NormPeriodogram,'.k')
-	sub1.set_xlabel(r'Frequency (h$^{-1}$)')
-	sub1.set_ylabel('Norm. Periodogram')
-	pl.savefig(DATname[:-4]+'_normalised_%s.png'%method)
-	pl.close()
+	if plot_normP:
+		fig = pl.figure(figsize=(10,7))
+		sub1 = fig.add_subplot(111)
+		fig.subplots_adjust(wspace=0.01,hspace=0.01,right=0.98,left=0.125)
+		fig.suptitle(DATname[:-4]+' normalised %s'%method,fontsize=18)
+		sub1.loglog(NormFreqs,NormPeriodogram,'.k')
+		sub1.set_xlabel(r'Frequency (h$^{-1}$)')
+		sub1.set_ylabel('Norm. Periodogram')
+		pl.savefig(DATname[:-4]+'_normalised_%s.png'%method)
+		pl.close()
 	
 	# Plot the data and fits
 	if PlotLinFit:
@@ -156,7 +166,7 @@ def Periodogram1Slope_and_Normalise(freqs=[],Periodogram=[],DATname='Periodogram
 def PeriodicSignal(times,X0,freq0):
 	return np.array(X0*np.sin(freq0*times))
 
-def Periodicity_and_NormPeriodogram(DATname='signal.dat', X0_FACT=[3.],PERIOD_LEN=[0.01], method='Kernrbf', select_periodogram='detrended'):
+def Periodicity_and_NormPeriodogram(DATname='signal.dat', X0_FACT=[3.],PERIOD_LEN=[0.01], method='Kernrbf', select_periodogram='detrended', plot_normP = False, plot_PeriodSignal = False):
 	'''
 		Function to simulate a Light Curve
 		Parameters:
@@ -205,15 +215,16 @@ def Periodicity_and_NormPeriodogram(DATname='signal.dat', X0_FACT=[3.],PERIOD_LE
 				with open(DATname[:-4]+'_X0%.1f_T%.2f.dat'%(amp_fact,period), "w+") as fpOut:
 					for ti, amp in zip(times,combined_signal):
 						fpOut.write("{:.7e}   {:.7e}\n".format(ti,amp))
-				fig = pl.figure(figsize=(10,7))
-				sub1 = fig.add_subplot(111)
-				fig.subplots_adjust(wspace=0.01,hspace=0.01,right=0.98,left=0.125)
-				fig.suptitle('%s sim%i noise=%i beta=%.2f periodicity X0=%.1f T=%.2f'%(sampling,nsim,noiselvl,beta,amp_fact,period),fontsize=15)
-				sub1.plot(times,combined_signal,'.k')
-				sub1.set_xlabel('Times (h)')
-				sub1.set_ylabel('Amplitude')
-				pl.savefig(DATname[:-4]+'_Xo%.1f_T%.2f.png'%(amp_fact,period))
-				pl.close()
+				if plot_PeriodSignal:
+					fig = pl.figure(figsize=(10,7))
+					sub1 = fig.add_subplot(111)
+					fig.subplots_adjust(wspace=0.01,hspace=0.01,right=0.98,left=0.125)
+					fig.suptitle('%s sim%i noise=%i beta=%.2f periodicity X0=%.1f T=%.2f'%(sampling,nsim,noiselvl,beta,amp_fact,period),fontsize=15)
+					sub1.plot(times,combined_signal,'.k')
+					sub1.set_xlabel('Times (h)')
+					sub1.set_ylabel('Amplitude')
+					pl.savefig(DATname[:-4]+'_Xo%.1f_T%.2f.png'%(amp_fact,period))
+					pl.close()
 			
 			### require copy needed of selected data column for C++ processing
 			LCurve = np.require(np.copy(combined_signal),requirements=['C','A'])
@@ -235,24 +246,23 @@ def Periodicity_and_NormPeriodogram(DATname='signal.dat', X0_FACT=[3.],PERIOD_LE
 				pdatnam = DATname[:-4]+'_Xo%.1f_T%.2f_periodogram_detrended_%s.dat'%(amp_fact,period,method)
 			else:
 				pdatnam = DATname[:-4]+'_Xo%.1f_T%.2f_periodogram_%s.dat'%(amp_fact,period,method)
-			slope = Periodogram1Slope_and_Normalise(FitFreqs,FitPeriodogram,pdatnam,method,1,PLOT_FIT)
+			slope = Periodogram1Slope_and_Normalise(FitFreqs,FitPeriodogram,pdatnam,method,1, PLOT_FIT,plot_normP)
 			os.chdir(PATH0)
-			with open("periodic_signal_periodogram_slopes.txt", "a") as file:
+			with open("periodic_signal_periodogram_slopes_%s.txt"%sampling, "a") as file:
 				file.write("%s\t%s\t%i\t%s\t%.1f\t%.2f\t%s\t%.3f\t%.3f\t%s\n"%(sampling,beta,nsim,noiselvl,amp_fact,period,method,slope,(beta-slope)/beta,select_periodogram))
 			os.chdir(PATH_X0)
 	os.chdir(PATH_sampling)
 	del data,times,signal,TOT_TIME,freqs,Time,PFreq,Ndata,Nfreqs,X0,amp_fact,period,freq0,periodic_signal,combined_signal,LCurve,LCurve_err,Periodogram,FitFreqs,FitPeriodogram,slope
 
-import time
-tiempo_inicio = time.time()
+#import time
+#tiempo_inicio = time.time()
 
 
-
-with open("periodogram_slopes.txt", "w") as file:
-	file.write("Sampling\tbeta\tNsim\tNoise\tMethod\tSlope\tErr.\tVersion\n")
-
-with open("periodic_signal_periodogram_slopes.txt", "w") as file:
-	file.write("Sampling\tbeta\tNsim\tNoise\tX0\tPeriod\tMethod\tSlope\tErr.\tVersion\n")
+for sampling in SAMPLINGS:
+	with open("periodogram_slopes_%s.txt"%sampling, "w") as file:
+		file.write("Sampling\tbeta\tNsim\tNoise\tMethod\tSlope\tErr.\tVersion\n")
+	with open("periodic_signal_periodogram_slopes_%s.txt"%sampling, "w") as file:
+		file.write("Sampling\tbeta\tNsim\tNoise\tX0\tPeriod\tMethod\tSlope\tErr.\tVersion\n")
 	
 for sampling in SAMPLINGS:
 	PATH_sampling = os.path.join(PATH0,sampling)
@@ -267,12 +277,12 @@ for sampling in SAMPLINGS:
 					data = np.loadtxt(fname) # Load data
 					freqs = np.array([np.log10(freq) for freq in data[:,0]])
 					Periodogram = np.array([np.log10(pdm) for pdm in data[:,1]])
-					slope = Periodogram1Slope_and_Normalise(freqs,Periodogram,fname,method,1,PLOT_FIT)
+					slope = Periodogram1Slope_and_Normalise(freqs,Periodogram,fname,method,1, PLOT_FIT,PLOT_NORM_PERIODOGRAM)
 					os.chdir(PATH0)
-					with open("periodogram_slopes.txt", "a") as file:
+					with open("periodogram_slopes_%s.txt"%sampling, "a") as file:
 						file.write("%s\t%s\t%i\t%s\t%s\t%.3f\t%.3f\t%s\n"%(sampling,beta,nsim,noiselvl,method,slope,(beta-slope)/beta,"original"))
 					datname = 'nsampling%s_beta%.2f_sim%i_noise%i.dat'%(sampling,beta,nsim,noiselvl)
-					Periodicity_and_NormPeriodogram(datname, X0_FACT,PERIOD_LEN, method, 'original')
+					Periodicity_and_NormPeriodogram(datname, X0_FACT,PERIOD_LEN, method, 'original', PLOT_NORM_PERIODOGRAM,PLOT_PERIODIC_SIGNAL)
 		
 		PATH_PERIOD = os.path.join(PATH_sampling,'DETRENDED_PERIODOGRAMS')
 		for nsim in range(NSIMULATIONS):
@@ -284,17 +294,17 @@ for sampling in SAMPLINGS:
 					data = np.loadtxt(fname) # Load data
 					freqs = np.array([np.log10(freq) for freq in data[:,0]])
 					Periodogram = np.array([np.log10(pdm) for pdm in data[:,1]])
-					slope = Periodogram1Slope_and_Normalise(freqs,Periodogram,fname,method,1,PLOT_FIT)
+					slope = Periodogram1Slope_and_Normalise(freqs,Periodogram,fname,method,1, PLOT_FIT,PLOT_NORM_PERIODOGRAM)
 					os.chdir(PATH0)
-					with open("periodogram_slopes.txt", "a") as file:
+					with open("periodogram_slopes_%s.txt"%sampling, "a") as file:
 						file.write("%s\t%s\t%i\t%s\t%s\t%.3f\t%.3f\t%s\n"%(sampling,beta,nsim,noiselvl,method,slope,(beta-slope)/beta,"detrended"))
 					datname = 'nsampling%s_beta%.2f_sim%i_noise%i.dat'%(sampling,beta,nsim,noiselvl)
-					Periodicity_and_NormPeriodogram(datname, X0_FACT,PERIOD_LEN, method, 'detrended')
+					Periodicity_and_NormPeriodogram(datname, X0_FACT,PERIOD_LEN, method, 'detrended', PLOT_NORM_PERIODOGRAM,PLOT_PERIODIC_SIGNAL)
 					
 
-tiempo_fin = time.time()
-tiempo_transcurrido = tiempo_fin - tiempo_inicio
-print("El programa ha tardado {:.4f} segundos en ejecutarse.".format(tiempo_transcurrido))
+#tiempo_fin = time.time()
+#tiempo_transcurrido = tiempo_fin - tiempo_inicio
+#print("El programa ha tardado {:.4f} segundos en ejecutarse.".format(tiempo_transcurrido))
 
 
 """
