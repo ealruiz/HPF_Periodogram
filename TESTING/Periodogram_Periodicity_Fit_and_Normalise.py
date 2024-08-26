@@ -254,10 +254,6 @@ def Periodicity_and_NormPeriodogram(DATname='signal.dat', X0_FACT=[3.],PERIOD_LE
 	os.chdir(PATH_sampling)
 	del data,times,signal,TOT_TIME,freqs,Time,PFreq,Ndata,Nfreqs,X0,amp_fact,period,freq0,periodic_signal,combined_signal,LCurve,LCurve_err,Periodogram,FitFreqs,FitPeriodogram,slope
 
-#import time
-#tiempo_inicio = time.time()
-
-
 for sampling in SAMPLINGS:
 	with open("periodogram_slopes_%s.txt"%sampling, "w") as file:
 		file.write("Sampling\tbeta\tNsim\tNoise\tMethod\tSlope\tErr.\tVersion\n")
@@ -302,39 +298,3 @@ for sampling in SAMPLINGS:
 					Periodicity_and_NormPeriodogram(datname, X0_FACT,PERIOD_LEN, method, 'detrended', PLOT_NORM_PERIODOGRAM,PLOT_PERIODIC_SIGNAL)
 					
 
-#tiempo_fin = time.time()
-#tiempo_transcurrido = tiempo_fin - tiempo_inicio
-#print("El programa ha tardado {:.4f} segundos en ejecutarse.".format(tiempo_transcurrido))
-
-
-"""
-Description of methods:
-- method == "Dynamic":
-	Detecting Change Points With Dynamic Programming
-		DynP leverages a dynamic programming approach to efficiently order the search over all possible segmentations, which helps optimize the process and provide accurate results.
-		It works by systematically examining all possible segmentations of a given signal to find the exact minimum of the sum of costs associated with each segmentation.
-		The user must specify the number of change points in advance.
-- method == "Binary":
-	Detecting Change Points With Binary Segmentation
-		Binary segmentation is pretty simple: first, it looks for a single change point in the entire signal.
-		Once it finds that point, it splits the signal into two parts and repeats the process for each of those parts.
-		This keeps going until no more change points are found or a specified stopping criterion is met.
-		It has a low complexity, which means it doesn’t take too much time or computing power to run and is a good option for large datasets.
-		One downside is that it can sometimes miss change points or detect false ones, especially when the changes are close together or the signal is noisy.
-- method == "BottomUp":
-	Detecting Change Points With The Bottom-Up Method
-		Bottom-up segmentation is an interesting approach for detecting change points in a signal.
-		Instead of starting with a single segment and dividing it, bottom-up segmentation begins with numerous change points and gradually reduces them.
-		Here’s how it goes: first, the signal is split into smaller pieces along a regular pattern.
-		Then, these pieces are progressively combined based on their similarities.
-		If two adjacent segments are alike, they’re joined into one larger segment.
-		This process continues until we’re left with the most meaningful change points
-- method == "Kernlin" or "Kernrbf" or "Kerncos":
-	Detecting Change Points With Kernel Change Detection
-		Kernel change point detection works by mapping the signal to a higher-dimensional space, called a Reproducing Kernel Hilbert Space (RKHS).
-		This might sound fancy, but it’s just a way to make change point detection more powerful and versatile by analyzing the signal from a different perspective.
-		The core idea is to find the change points that minimize a certain cost function, which measures how well the segmented signal fits the data.
-		When the number of change points is known, you can solve a specific optimization problem to find the best segmentation.
-		If you don’t know the number of change points, you can use a penalty term to balance the goodness of fit against the complexity of the segmentation.
-		There are three kernel functions available in ruptures: linear, rbf, and cosine.
-"""
