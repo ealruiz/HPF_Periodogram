@@ -30,7 +30,7 @@ detrendPeriodogramcpp.detrendedPeriodogram(Time,LCurve,LCurve_err, PFreq,Periodo
 data_array = np.require(np.copy(your_data),requirements=['C','A'])
 # Note: change data_array for Time, Lcurve and LCurve_err, and your_data with your times, lcurves and errors.
 # Note: if you do not want to include the errors in the computation, specify:
-#        LCurve_err = np.zeros(len(data))
+#        LCurve_err = np.require(np.zeros(len(data)),requirements=['C','A'])
 
 # For the **PFreq** and **Periodogram** arrays, specify them as follows:
 freqs = np.array([2.*np.pi*n/TOT_TIME for n in np.arange(1,int(Ntimes+1)/2))])
